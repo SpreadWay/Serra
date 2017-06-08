@@ -29,15 +29,15 @@ export default class TermsBox extends React.Component {
     return (
       <div style={ style }>
         <div style={ termsInnerStyle }>
-          <Term label="Principal:" value={ this.props.principal } />
-          <Term label="Interest:" value={ this.props.interest } />
-          <Term label="Term:" value={ this.props.term } />
+          <Term label="Principal:" value={ this.props.terms.principalStr() } />
+          <Term label="Interest:" value={ this.props.terms.interestStr() } />
+          <Term label="Term:" value={ this.props.terms.termStr() } />
         </div>
         <hr></hr>
         <TermsSummary
-          debtPerPeriod={ this.props.debtPerPeriod }
-          totalDebt={ this.props.totalDebt }
-          periodStr={ this.props.periodStr } />
+          debtPerPeriod={ this.props.terms.debtPerPeriod() }
+          totalDebt={ this.props.terms.totalDebt() }
+          periodStr={ this.props.terms.periodStr() } />
         <img style={ shineStyle } src={ Shine }></img>
       </div>
     );

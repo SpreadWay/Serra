@@ -29,10 +29,13 @@ const styleDisabled = {
 
 export default class DharmaButton extends React.Component {
   render() {
+    const buttonStyle = this.props.disabled ? styleDisabled : styleEnabled;
+    const style = {...this.props.style, ...buttonStyle}
+
     return (
       <Button
         theme=''
-        style={ this.props.disabled ? styleDisabled : styleEnabled }
+        style={ style }
         disabled={ this.props.disabled }
         label={ this.props.label }
         onClick={ this.props.onClick } />

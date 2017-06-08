@@ -11,10 +11,12 @@ class LoanContract {
     this.web3 = web3;
     this.contractUrl = contractUrl;
 
+    this.deploy = this.deploy.bind(this);
     this._deploy = this._deploy.bind(this);
   }
 
   deploy(terms, callback) {
+    console.log(terms);
     if (typeof this.web3 === 'undefined') {
       alert("I'm unable to reach the Ethereum network right now.  Make sure \
         you are accessing this page from either the Token or Status Ethereum \
@@ -28,7 +30,7 @@ class LoanContract {
        this.contractRaw = JSON.parse(raw);
       return this._gasEstimate(this.web3, this.contractRaw.bytecode);
     }.bind(this)).catch(function(error) {
-      alert(error);
+      callback(error, null);
     }).then(function(gasEstimate) {
       this.gasEstimate = gasEstimate;
       this._deploy(terms, callback);
@@ -42,17 +44,17 @@ class LoanContract {
                    this.web3.toWei(terms.principal, 'ether'),
                    terms.period.value,
                    terms.periodLength,
-                   this.web3.toWei(terms.interest,  'ether'),
+                   this.web3.toWei(terms.interest, 'ether'),
                    terms.termLength,
                    terms.fundingTimelock,
                    {
-                     from: this.web3.defaultAccount,
+                     from: terms.borrower,
                      data: this.contractRaw.bytecode,
-                     gasPrice: this.web3.toWei(1, 'gwei'),
-                     gas: this.gasEstimate*2
+                     gasPrice: this.web3.toWei(22, 'gwei'),
+                     gas: this.gasEstimate*1.3
                    }, callback);
     } catch (error) {
-      alert(error.stack);
+      callback("contract error " + error.stack, null);
     }
 
   }
@@ -80,7 +82,7 @@ class LoanContract {
           }
         })
       } catch (error) {
-        alert(error);
+        reject("gas error: " + error.stack);
       }
     })
   }

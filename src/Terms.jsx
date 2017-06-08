@@ -22,23 +22,15 @@ const periodTypes = {
 
 class Terms {
   constructor(queryString) {
-    this.borrower = '0xd721fac5ffc9cc5b7324df740673c4c2c2ccd09a';
-    this.attestor = '0xa373f68a65df45a9ca041885c2e07d143f07b5d2';
-    this.principal = 100;
-    this.interest = 1;
-    this.period = periodTypes['Monthly'];
-    this.periodLength = 2;
-    this.termLength = 2;
-    this.fundingTimelock = 10000000000;
-    // const parsed = parse(queryString, location, true);
-    // this.borrower = parsed.query.borrower;
-    // this.attestor = parsed.query.attestor;
-    // this.principal = Number(parsed.query.principal);
-    // this.interest = Number(parsed.query.interest);
-    // this.period = periodTypes[parsed.query.periodType];
-    // this.periodLength = Number(parsed.query.periodLength);
-    // this.termLength = Number(parsed.query.termLength);
-    // this.fundingTimelock = Number(parsed.query.fundingTimelock);
+    const parsed = parse(queryString, location, true);
+    this.borrower = parsed.query.borrower;
+    this.attestor = parsed.query.attestor;
+    this.principal = Number(parsed.query.principal);
+    this.interest = Number(parsed.query.interest);
+    this.period = periodTypes[parsed.query.periodType];
+    this.periodLength = Number(parsed.query.periodLength);
+    this.termLength = Number(parsed.query.termLength);
+    this.fundingTimelock = Number(parsed.query.fundingTimelock);
   }
 
   principalStr () {
