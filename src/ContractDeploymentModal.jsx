@@ -2,6 +2,7 @@ import React from 'react';
 import Modal from 'react-modal';
 import CircleLoader from './CircleLoader.jsx';
 import DharmaButton from "./DharmaButton.jsx";
+import LoanContract from "./lib/LoanContract.jsx";
 
 const modalStyle = {
   overlay : {
@@ -76,6 +77,18 @@ const retryStyleVisible = {
   margin: '10px 0',
 }
 
+const bottomStyleVisible = {
+  position: 'absolute',
+  width: '100%',
+  bottom: 0,
+  left: 0,
+  textAlign: 'center',
+  padding: '30px',
+  boxSizing: 'border-box',
+  lineHeight: '20px',
+  fontSize: '14px'
+}
+
 export default class ContractDeploymentModal extends React.Component {
   constructor(props) {
     super(props);
@@ -83,7 +96,7 @@ export default class ContractDeploymentModal extends React.Component {
     this.terms = props.terms;
     this.loanContract = props.loanContract;
 
-    this.contractDeployCallback = this.contractDeployCallback.bind(this);
+    this.loanRequestCallback = this.loanRequestCallback.bind(this);
     this.retryDeploy = this.retryDeploy.bind(this);
   }
 
@@ -92,27 +105,17 @@ export default class ContractDeploymentModal extends React.Component {
     this.setState({ deploymentState: "broadcasting" });
   }
 
-  deployLoanContract() {
-    this.loanContract.deploy(this.terms, this.contractDeployCallback);
+  createLoanRequest() {
+    this.loanContract.createLoanRequest(this.terms, this.loanRequestCallback);
   }
 
-  contractDeployCallback(error, contract) {
+  loanRequestCallback(error, loan) {
     if (error) {
       console.log(error);
       this.setState({ deploymentState: "error", error: error });
     } else {
-      this.setState({ deploymentState: 'confirmed' });
-      // Due to bug in iOS Token implementation, second callback never fires
-      // for contract deployments
-
-    //   if (!contract.address) {
-    //     console.log("TX Hash: " + contract.txHash);
-    //     this.setState({ deploymentState: 'confirming', txHash: contract.transactionHash });
-    //   } else {
-    //     console.log("Contract Address: " + contract.address);
-    //     this.setState({ deploymentState: 'confirmed' });
-    //   }
-    // }
+        this.loanContract.generateReceiptMessage(this.terms, loan)
+        this.setState({ deploymentState: 'confirmed' });
     }
   }
 
@@ -131,19 +134,21 @@ export default class ContractDeploymentModal extends React.Component {
     }
   }
 
+
+
   render() {
     const message = this.getMessage(this.state.deploymentState)
 
     if (this.state.deploymentState == 'broadcasting' && this.props.modalOpen) {
-      this.deployLoanContract();
+      this.createLoanRequest();
     }
 
     const error = this.state.deploymentState == 'error';
+    const confirmed = this.state.deploymentState == 'confirmed';
 
     const loaderStyle = error ? { display: 'none' } : loaderStyleVisible;
     const retryStyle = error ? retryStyleVisible : { display: 'none' };
-
-    // const retryButtonStyle = error ? retryButtonStyleVisible : { display: 'none' };
+    const bottomStyle = confirmed ? bottomStyleVisible : { display: 'none' };
     return (
       <Modal
         isOpen={ this.props.modalOpen }
@@ -155,6 +160,7 @@ export default class ContractDeploymentModal extends React.Component {
           </div>
           <DharmaButton style={ retryStyle } onClick={ this.retryDeploy } label="TRY AGAIN" />
         </div>
+        <p style={ bottomStyle }>Your loan will be funded and the tokens will be in your account within approximately the next hour.</p>
       </Modal>
     )
   }

@@ -1,21 +1,23 @@
 const request = require('request');
 const Web3 = require('web3');
+const uuidV4 = require('uuid/v4');
 
-const CURRENT_LOAN_IMPLEMENTATION =
-  '/ipfs/QmYXP4oVAYwZy81uDq1Daf2RbtsqpfT2wRNpyvcaeXD7RH';
+const CURRENT_LOAN_ABI =
+  '/ipfs/QmRxgCsyA5ZmkkuEpuLH1kxm6WNLjcBpSB58JdVGg4FXPR';
 
 const IPFS_GATEWAY = "https://gateway.ipfs.io";
+const DHARMA_CHATBOT_ROOT = "https://7f86c56e.ngrok.io";
 
 class LoanContract {
-  constructor(web3, contractUrl=CURRENT_LOAN_IMPLEMENTATION) {
+  constructor(web3, abiUrl=CURRENT_LOAN_ABI) {
     this.web3 = web3;
-    this.contractUrl = contractUrl;
+    this.abiUrl = abiUrl;
 
-    this.deploy = this.deploy.bind(this);
-    this._deploy = this._deploy.bind(this);
+    this.createLoanRequest = this.createLoanRequest.bind(this);
+    this._createLoanRequest = this._createLoanRequest.bind(this);
   }
 
-  deploy(terms, callback) {
+  createLoanRequest(terms, callback) {
     console.log(terms);
     if (typeof this.web3 === 'undefined') {
       alert("I'm unable to reach the Ethereum network right now.  Make sure \
@@ -24,37 +26,43 @@ class LoanContract {
       return;
     }
 
-    this._pullFromIPFS(this.contractUrl).catch(function(error) {
+    this._pullFromIPFS(this.abiUrl).catch(function(error) {
        alert(error);
     }).then(function(raw) {
-       this.contractRaw = JSON.parse(raw);
-      return this._gasEstimate(this.web3, this.contractRaw.bytecode);
-    }.bind(this)).catch(function(error) {
-      callback(error, null);
-    }).then(function(gasEstimate) {
-      this.gasEstimate = gasEstimate;
-      this._deploy(terms, callback);
+       this.abi = JSON.parse(raw);
+      this._createLoanRequest(terms, callback);
     }.bind(this));
   }
 
-  _deploy(terms, callback) {
-    const Contract = this.web3.eth.contract(this.contractRaw.abi);
+  generateReceiptMessage(terms, txHash) {
+    request(DHARMA_CHATBOT_ROOT + "/" + terms.tokenId + "/generateReceipt/" + txHash,
+      function(error, response, body) {
+        if (error) {
+          console.log(error);
+        } else {
+          console.log(body);
+        }
+    })
+  }
+
+  _createLoanRequest(terms, callback) {
+    const contract = this.web3.eth.contract(this.abi).at('0x4Eaa8c21F9D3B40F2C02DAceA4A54527bff2B6a0')
+    const uuid = uuidV4();
+
     try {
-      Contract.new(terms.attestor,
-                   this.web3.toWei(terms.principal, 'ether'),
-                   terms.period.value,
-                   terms.periodLength,
-                   this.web3.toWei(terms.interest, 'ether'),
-                   terms.termLength,
-                   terms.fundingTimelock,
-                   {
-                     from: terms.borrower,
-                     data: this.contractRaw.bytecode,
-                     gasPrice: this.web3.toWei(22, 'gwei'),
-                     gas: this.gasEstimate*1.3
-                   }, callback);
+      contract.createLoan(uuid,
+                          terms.borrower,
+                          terms.attestor,
+                          this.web3.toWei(terms.principal, 'ether'),
+                          terms.period.value,
+                          terms.periodLength,
+                          this.web3.toWei(terms.interest, 'ether'),
+                          terms.termLength,
+                          terms.fundingTimelock,
+                          { from: terms.borrower },
+                          callback);
     } catch (error) {
-      callback("contract error " + error.stack, null);
+      callback("contract error " + error, null);
     }
 
   }

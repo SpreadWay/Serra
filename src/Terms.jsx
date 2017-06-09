@@ -31,6 +31,7 @@ class Terms {
     this.periodLength = Number(parsed.query.periodLength);
     this.termLength = Number(parsed.query.termLength);
     this.fundingTimelock = Number(parsed.query.fundingTimelock);
+    this.tokenId = parsed.query.tokenId;
   }
 
   principalStr () {
