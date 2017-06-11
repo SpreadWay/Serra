@@ -6,7 +6,7 @@ const CURRENT_LOAN_ABI =
   '/ipfs/QmRxgCsyA5ZmkkuEpuLH1kxm6WNLjcBpSB58JdVGg4FXPR';
 
 const IPFS_GATEWAY = "https://gateway.ipfs.io";
-const DHARMA_CHATBOT_ROOT = "ec2-34-211-208-19.us-west-2.compute.amazonaws.com";
+const DHARMA_CHATBOT_ROOT = "https://alma.dharma.io";
 
 class LoanContract {
   constructor(web3, abiUrl=CURRENT_LOAN_ABI) {
