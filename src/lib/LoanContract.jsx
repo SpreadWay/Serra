@@ -3,7 +3,7 @@ const Web3 = require('web3');
 const uuidV4 = require('uuid/v4');
 
 const CURRENT_LOAN_ABI =
-  '/ipfs/QmRxgCsyA5ZmkkuEpuLH1kxm6WNLjcBpSB58JdVGg4FXPR';
+  '/ipfs/QmcUQ5nwUWbfuytoBHz2oHfmusS38LFPXwLcbrFn2pnMSc';
 const ETH_PRICE_API_ENDPOINT =
   'https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD'
 
@@ -31,10 +31,12 @@ class LoanContract {
     var  _this = this;
 
     this._pullAbiFromIPFS(this.abiUrl).catch(function(error) {
-       alert(error);
+       callback("Couldn't pull ABI from IPFS", null);
     }).then(function(raw) {
        _this.abi = JSON.parse(raw);
        return _this._pullCurrentETHPriceUSD();
+    }).catch(function(error) {
+      callback("Couldn't pull price feed", null);
     }).then(function(price) {
         _this.ethPrincipal = terms.principalInETH(price.USD);
         _this.ethInterest = terms.interestInETH(price.USD);
@@ -56,8 +58,9 @@ class LoanContract {
   }
 
   _createLoanRequest(terms, callback) {
-    const contract = this.web3.eth.contract(this.abi).at('0xfccfc1a5606a42844244610e181e218ac75db0aa')
-    const uuid = uuidV4();
+    const contract = this.web3.eth.contract(this.abi).at('0xf4b06db3d1cfdca77866ec07424687c286311425')
+    const uuid = this.web3.sha3(uuidV4());
+    console.log("UUID is: " + uuid);
 
     try {
       contract.createLoan(uuid,
