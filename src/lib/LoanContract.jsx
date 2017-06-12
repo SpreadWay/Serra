@@ -35,7 +35,9 @@ class LoanContract {
   }
 
   generateReceiptMessage(terms, txHash) {
-    request(DHARMA_CHATBOT_ROOT + "/" + terms.tokenId + "/generateReceipt/" + txHash,
+    var url = DHARMA_CHATBOT_ROOT + "/" + terms.tokenId + "/generateReceipt/" + txHash;
+    console.log("Requesting " + url);
+    request(url,
       function(error, response, body) {
         if (error) {
           console.log(error);
@@ -46,7 +48,7 @@ class LoanContract {
   }
 
   _createLoanRequest(terms, callback) {
-    const contract = this.web3.eth.contract(this.abi).at('0x4Eaa8c21F9D3B40F2C02DAceA4A54527bff2B6a0')
+    const contract = this.web3.eth.contract(this.abi).at('0xfccfc1a5606a42844244610e181e218ac75db0aa')
     const uuid = uuidV4();
 
     try {
