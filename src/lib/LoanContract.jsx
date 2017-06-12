@@ -3,7 +3,7 @@ const Web3 = require('web3');
 const uuidV4 = require('uuid/v4');
 
 const CURRENT_LOAN_ABI =
-  '/ipfs/QmcUQ5nwUWbfuytoBHz2oHfmusS38LFPXwLcbrFn2pnMSc';
+  '/ipfs/QmenAvq6MbrLRwDNTSmW9VFgKfwNp2wt4ywG5J4YdmC7fQ';
 const ETH_PRICE_API_ENDPOINT =
   'https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD'
 
@@ -58,7 +58,7 @@ class LoanContract {
   }
 
   _createLoanRequest(terms, callback) {
-    const contract = this.web3.eth.contract(this.abi).at('0xf4b06db3d1cfdca77866ec07424687c286311425')
+    const contract = this.web3.eth.contract(this.abi).at('0x29bede679f82cfe352795d375d0bfe51ffbb05f1')
     const uuid = this.web3.sha3(uuidV4());
     console.log("UUID is: " + uuid);
 
