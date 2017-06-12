@@ -67,6 +67,14 @@ class Terms {
       return "Per " + this.period.unit;
     }
   }
+
+  principalInETH(price) {
+    return this.principal / price;
+  }
+
+  interestInETH(price) {
+    return this.interest / price;
+  }
 }
 
 export default Terms;

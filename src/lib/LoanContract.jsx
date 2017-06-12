@@ -4,6 +4,8 @@ const uuidV4 = require('uuid/v4');
 
 const CURRENT_LOAN_ABI =
   '/ipfs/QmRxgCsyA5ZmkkuEpuLH1kxm6WNLjcBpSB58JdVGg4FXPR';
+const ETH_PRICE_API_ENDPOINT =
+  'https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD'
 
 const IPFS_GATEWAY = "https://gateway.ipfs.io";
 const DHARMA_CHATBOT_ROOT = "https://alma.dharma.io";
@@ -26,12 +28,18 @@ class LoanContract {
       return;
     }
 
-    this._pullFromIPFS(this.abiUrl).catch(function(error) {
+    var  _this = this;
+
+    this._pullAbiFromIPFS(this.abiUrl).catch(function(error) {
        alert(error);
     }).then(function(raw) {
-       this.abi = JSON.parse(raw);
-      this._createLoanRequest(terms, callback);
-    }.bind(this));
+       _this.abi = JSON.parse(raw);
+       return _this._pullCurrentETHPriceUSD();
+    }).then(function(price) {
+        _this.ethPrincipal = terms.principalInETH(price.USD);
+        _this.ethInterest = terms.interestInETH(price.USD);
+        _this._createLoanRequest(terms, callback);
+    });
   }
 
   generateReceiptMessage(terms, txHash) {
@@ -55,10 +63,10 @@ class LoanContract {
       contract.createLoan(uuid,
                           terms.borrower,
                           terms.attestor,
-                          this.web3.toWei(terms.principal, 'ether'),
+                          this.web3.toWei(this.ethPrincipal, 'ether'),
                           terms.period.value,
                           terms.periodLength,
-                          this.web3.toWei(terms.interest, 'ether'),
+                          this.web3.toWei(this.ethInterest, 'ether'),
                           terms.termLength,
                           terms.fundingTimelock,
                           { from: terms.borrower },
@@ -69,13 +77,25 @@ class LoanContract {
 
   }
 
-  _pullFromIPFS(url) {
+  _pullAbiFromIPFS(url) {
     return new Promise(function(accept, reject) {
       request(IPFS_GATEWAY + url, function(error, response, body) {
         if (error) {
           reject(error);
         } else {
           accept(body);
+        }
+      })
+    })
+  }
+
+  _pullCurrentETHPriceUSD() {
+    return new Promise(function(accept, reject) {
+      request(ETH_PRICE_API_ENDPOINT, function(error, response, body) {
+        if (error) {
+          reject(error);
+        } else  {
+          accept(JSON.parse(body));
         }
       })
     })
