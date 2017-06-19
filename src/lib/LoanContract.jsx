@@ -62,22 +62,28 @@ class LoanContract {
     const uuid = this.web3.sha3(uuidV4());
     console.log("UUID is: " + uuid);
 
-    try {
-      contract.createLoan(uuid,
-                          terms.borrower,
-                          terms.attestor,
-                          this.web3.toWei(this.ethPrincipal, 'ether'),
-                          terms.period.value,
-                          terms.periodLength,
-                          this.web3.toWei(this.ethInterest, 'ether'),
-                          terms.termLength,
-                          terms.fundingTimelock,
-                          { from: terms.borrower },
-                          callback);
-    } catch (error) {
-      callback("contract error " + error, null);
+    const data = contract.createLoan.getData(uuid, terms.borrower,
+      terms.attestor, this.web3.toWei(this.ethPrincipal, 'ether'),
+      terms.period.value, terms.periodLength,
+      this.web3.toWei(this.ethInterest, 'ether'),
+      terms.termLength, terms.fundingTimelock);
+
+    const callObject = {
+      from: terms.borrower,
+      to: '0x29bede679f82cfe352795d375d0bfe51ffbb05f1',
+      data: data
     }
 
+    this.web3.eth.estimateGas(callObject, function(err, gasEstimate) {
+      if (err) {
+        console.log(err);
+      } else {
+        let callObjWithGas = callObject;
+        callObjWithGas['gas'] = gasEstimate;
+        callObjWithGas['gasPrice'] = this.web3.toWei(22, 'gwei')
+        this.web3.eth.sendTransaction(callObjWithGas, callback);
+      }
+    }.bind(this));
   }
 
   _pullAbiFromIPFS(url) {
@@ -101,22 +107,6 @@ class LoanContract {
           accept(JSON.parse(body));
         }
       })
-    })
-  }
-
-  _gasEstimate(web3, bytecode) {
-    return new Promise(function(accept, reject) {
-      try {
-        web3.eth.estimateGas({data: bytecode}, function(error, gas) {
-          if (error) {
-            reject(error);
-          } else {
-            accept(gas);
-          }
-        })
-      } catch (error) {
-        reject("gas error: " + error.stack);
-      }
     })
   }
 }
